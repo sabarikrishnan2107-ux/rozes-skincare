@@ -1,0 +1,13 @@
+# Netlify config — static front-end demo (no backend; app runs in DEMO mode).
+[build]
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback so client-side routes (e.g. /sales, /reports) work on refresh.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
