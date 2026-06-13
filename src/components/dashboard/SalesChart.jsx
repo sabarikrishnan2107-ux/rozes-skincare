@@ -3,19 +3,23 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts';
+import { LineChart as LineChartIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmtAED } from '@/utils/format';
 import { cn } from '@/lib/utils';
 
 export default function SalesChart({ data, title = 'Revenue' }) {
   const [view, setView] = useState('area');
+  const hasData = data.some(d => (d.revenue || 0) > 0);
 
   const ChartTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
+    const p = payload[0].payload || {};
     return (
       <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
         <div className="text-muted-foreground">{label}</div>
         <div className="mt-0.5 font-semibold text-primary">{fmtAED(payload[0].value)}</div>
+        {p.units != null && <div className="mt-0.5 text-muted-foreground">{p.units.toLocaleString()} units</div>}
       </div>
     );
   };
@@ -30,7 +34,17 @@ export default function SalesChart({ data, title = 'Revenue' }) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-72">
+        <div className="relative h-72">
+          {!hasData && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+                <LineChartIcon className="h-6 w-6" />
+              </div>
+              <div className="text-sm font-medium text-foreground">No revenue to show</div>
+              <div className="text-xs text-muted-foreground">Record a sale and it'll appear here.</div>
+            </div>
+          )}
+          <div className={cn('h-full transition-opacity', !hasData && 'opacity-30')}>
           <ResponsiveContainer>
             {view === 'area' ? (
               <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -67,6 +81,7 @@ export default function SalesChart({ data, title = 'Revenue' }) {
               </BarChart>
             )}
           </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>

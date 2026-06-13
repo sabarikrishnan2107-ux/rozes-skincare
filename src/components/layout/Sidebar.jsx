@@ -24,12 +24,16 @@ const NAV = [
 
 export default function Sidebar({ open, onClose }) {
   const [expanded, setExpanded] = useState(() => localStorage.getItem('rozes_ui.sidebarExpanded') === '1');
+  const [hovered, setHovered] = useState(false);
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const { unread } = useNotifications();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+
+  // Visually expanded when pinned open OR while the mouse is hovering the rail.
+  const showExpanded = expanded || hovered;
 
   useEffect(() => {
     localStorage.setItem('rozes_ui.sidebarExpanded', expanded ? '1' : '0');
@@ -43,7 +47,7 @@ export default function Sidebar({ open, onClose }) {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const width = expanded ? 'w-60' : 'w-[72px]';
+  const width = showExpanded ? 'w-60' : 'w-[72px]';
 
   return (
     <>
@@ -52,6 +56,8 @@ export default function Sidebar({ open, onClose }) {
       )}
 
       <aside
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => { setHovered(false); setProfileOpen(false); }}
         className={cn(
           'fixed lg:sticky top-0 left-0 z-40 flex h-screen flex-col border-r bg-card transition-[width,transform] duration-300 lg:translate-x-0',
           width,
@@ -60,7 +66,7 @@ export default function Sidebar({ open, onClose }) {
         )}
       >
         {/* Top: avatar + close on mobile */}
-        <div className={cn('flex items-center justify-between p-3', expanded ? 'px-4' : 'px-3')}>
+        <div className={cn('flex items-center justify-between p-3', showExpanded ? 'px-4' : 'px-3')}>
           <div ref={profileRef} className="relative">
             <button
               onClick={() => setProfileOpen(o => !o)}
@@ -91,7 +97,7 @@ export default function Sidebar({ open, onClose }) {
             )}
           </div>
 
-          {expanded && (
+          {showExpanded && (
             <div className="ml-3 flex-1 leading-tight">
               <div className="text-sm font-bold">Rozes</div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-primary">Skincare</div>
@@ -121,7 +127,7 @@ export default function Sidebar({ open, onClose }) {
                     className={({ isActive }) =>
                       cn(
                         'group relative flex items-center rounded-xl text-sm font-medium transition-all',
-                        expanded ? 'gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center',
+                        showExpanded ? 'gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center',
                         isActive
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -141,8 +147,8 @@ export default function Sidebar({ open, onClose }) {
                             </span>
                           )}
                         </span>
-                        {expanded && <span>{item.label}</span>}
-                        {!expanded && (
+                        {showExpanded && <span>{item.label}</span>}
+                        {!showExpanded && (
                           <span className="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap rounded-md bg-popover px-2 py-1 text-xs font-medium text-popover-foreground shadow-md group-hover:block z-50 border">
                             {item.label}
                           </span>
@@ -157,18 +163,18 @@ export default function Sidebar({ open, onClose }) {
         </nav>
 
         {/* Bottom: theme toggle + collapse arrow */}
-        <div className={cn('border-t p-2 space-y-1', expanded && 'px-3')}>
+        <div className={cn('border-t p-2 space-y-1', showExpanded && 'px-3')}>
           <button
             onClick={toggle}
             className={cn(
               'group relative flex items-center rounded-xl text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground',
-              expanded ? 'w-full gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center'
+              showExpanded ? 'w-full gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center'
             )}
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            {expanded && <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>}
-            {!expanded && (
+            {showExpanded && <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>}
+            {!showExpanded && (
               <span className="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap rounded-md bg-popover px-2 py-1 text-xs font-medium text-popover-foreground shadow-md group-hover:block z-50 border">
                 {theme === 'dark' ? 'Light mode' : 'Dark mode'}
               </span>
@@ -179,12 +185,12 @@ export default function Sidebar({ open, onClose }) {
             onClick={() => setExpanded(e => !e)}
             className={cn(
               'flex items-center rounded-xl text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground',
-              expanded ? 'w-full gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center'
+              showExpanded ? 'w-full gap-3 px-3 py-2.5' : 'h-11 w-12 mx-auto justify-center'
             )}
-            aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
+            aria-label={expanded ? 'Unpin sidebar' : 'Keep sidebar open'}
           >
             {expanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-            {expanded && <span>Collapse</span>}
+            {showExpanded && <span>{expanded ? 'Collapse' : 'Keep open'}</span>}
           </button>
         </div>
       </aside>

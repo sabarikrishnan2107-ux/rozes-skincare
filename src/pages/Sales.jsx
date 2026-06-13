@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
-  Calendar, Layers, Loader2, Plus, Search, ShoppingBag, Trash2
+  Calendar, FileSpreadsheet, Layers, Loader2, Plus, Search, ShoppingBag, Trash2
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import ComboProductPicker from '@/components/ComboProductPicker';
 import { fmtAED, fmtDate, fmtNumber, todayISO } from '@/utils/format';
 import { SALES_CHANNELS, channelLabel } from '@/utils/channels';
+import { exportSalesExcel } from '@/utils/exporters';
 
 export default function Sales() {
   const [products, setProducts] = useState([]);
@@ -107,6 +108,12 @@ export default function Sales() {
     refresh();
   };
 
+  const downloadExcel = () => {
+    if (filtered.length === 0) { toast.error('No sales to export'); return; }
+    exportSalesExcel({ title: 'Sales', rows: filtered });
+    toast.success('Excel downloaded', { description: `${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}` });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -117,6 +124,7 @@ export default function Sales() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={downloadExcel}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
           <Button variant="outline" onClick={() => setBulkOpen(true)}><Layers className="h-4 w-4" /> Bulk entry</Button>
           <Button onClick={() => setSingleOpen(true)}><Plus className="h-4 w-4" /> Quick sale</Button>
         </div>

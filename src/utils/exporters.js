@@ -125,6 +125,26 @@ export function exportSalesExcel({ title, rows, returns = [] }) {
   XLSX.writeFile(wb, `rozes-${title.toLowerCase().replace(/\s+/g, '-')}.xlsx`);
 }
 
+export function exportReturnsExcel({ title, rows }) {
+  const data = rows.map(r => ({
+    Date: r.return_date,
+    Product: r.product_name,
+    SKU: r.sku,
+    Channel: channelLabel(r.channel),
+    Quantity: r.quantity,
+    Reason: r.reason || ''
+  }));
+  data.push({
+    Date: '', Product: 'TOTAL', SKU: '', Channel: '',
+    Quantity: rows.reduce((a, r) => a + (Number(r.quantity) || 0), 0), Reason: ''
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [{ wch: 12 }, { wch: 32 }, { wch: 14 }, { wch: 12 }, { wch: 8 }, { wch: 28 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Returns');
+  XLSX.writeFile(wb, `rozes-${title.toLowerCase().replace(/\s+/g, '-')}.xlsx`);
+}
+
 export function exportProductsCSV(products) {
   const headers = ['name', 'sku', 'category', 'price', 'stock_quantity', 'initial_stock', 'low_stock_threshold'];
   const lines = [headers.join(',')];

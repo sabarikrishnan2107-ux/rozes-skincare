@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Plus, RotateCcw, Search, Trash2, Undo2 } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Plus, RotateCcw, Search, Trash2, Undo2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import ComboProductPicker from '@/components/ComboProductPicker';
 import { fmtDate, fmtNumber, todayISO } from '@/utils/format';
 import { SALES_CHANNELS, channelLabel } from '@/utils/channels';
+import { exportReturnsExcel } from '@/utils/exporters';
 
 const emptyForm = () => ({ product_id: '', quantity: 1, channel: 'website', return_date: todayISO(), reason: '', combo: false, items: [] });
 
@@ -80,6 +81,12 @@ export default function Returns() {
     refresh();
   };
 
+  const downloadExcel = () => {
+    if (filtered.length === 0) { toast.error('No returns to export'); return; }
+    exportReturnsExcel({ title: 'Returns', rows: filtered });
+    toast.success('Excel downloaded', { description: `${filtered.length} ${filtered.length === 1 ? 'return' : 'returns'}` });
+  };
+
   const removeReturn = async (id) => {
     try {
       await base44.entities.ReturnEntry.delete(id);
@@ -99,7 +106,10 @@ export default function Returns() {
             Record returned orders — stock is added back automatically.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Add return</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={downloadExcel}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
+          <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Add return</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
